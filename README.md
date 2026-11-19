@@ -5,21 +5,22 @@ Configura o **Codex**, o **Claude Desktop**, o **Claude Code** e o **OpenCode** 
 ## Instalar
 
 1. Abra o **PowerShell** (menu Iniciar, digite "PowerShell").
-2. Cole o comando abaixo e tecle **Enter**:
+2. Para o **Codex Desktop** funcionar completo, abra o PowerShell **como administrador** (botão direito no PowerShell > *Executar como administrador*). Sem isso o instalador avisa e a regra do sistema do Codex Desktop não é gravada.
+3. Cole o comando abaixo e tecle **Enter**:
 
 ```powershell
-irm https://raw.githubusercontent.com/LinkjohnDEV/lauren-instalador/v1.0/instalar.ps1 | iex
+irm https://raw.githubusercontent.com/LinkjohnDEV/lauren-instalador/v1.1/instalar.ps1 | iex
 ```
 
-3. Cole a sua **chave** (começa com `lp_`) e tecle Enter. A chave não aparece na tela.
-4. Leia o resumo e tecle **Enter** para instalar (ou Ctrl+C para cancelar).
+4. Cole a sua **chave** (começa com `lp_`) e tecle Enter. A chave não aparece na tela.
+5. Leia o resumo e tecle **Enter** para instalar (ou Ctrl+C para cancelar).
 
 A chave é testada antes de qualquer alteração. Se estiver errada, nada é mexido.
 
 ## Desfazer
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/LinkjohnDEV/lauren-instalador/v1.0/instalar.ps1))) -Uninstall
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/LinkjohnDEV/lauren-instalador/v1.1/instalar.ps1))) -Uninstall
 ```
 
 Volta os arquivos para **exatamente** o que eram antes da primeira instalação, remove as ferramentas e a variável da chave. O que não existia antes é renomeado (`.removido-data`), nunca apagado.
@@ -46,7 +47,7 @@ Busca na web, leitura e edição de arquivos, busca de código, memória, racioc
 O arquivo `instalar.ps1` desta versão tem o SHA-256:
 
 ```
-da4764adc75147c47a8a7c7cb3d52a1c58b19a8c14f69071ec810896aac138aa
+9b040e665d5fa02ab5e41da72ac947d8ab86c948050dd398f0266241c3059860
 ```
 
 Para conferir: `(Get-FileHash .\instalar.ps1 -Algorithm SHA256).Hash`

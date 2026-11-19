@@ -1,7 +1,9 @@
-# Instalador Lauren API para Windows (PowerShell)
+# Instalador Lauren API para Windows (PowerShell) - v1.1
 # Base: payload-servidor-gateway v7.0 (repositório lauren-instalador). Adaptado para a Lauren API em 19/11/2026:
 #   - o endereço já vem fixo (https://api.ialauren.com); a chave NÃO fica no arquivo: ela é pedida na hora, digitada escondida;
 #   - mostra o que vai fazer e espera um Enter antes de mexer em qualquer arquivo (use -Sim para pular).
+#   - v1.1: avisa quando falta Administrador (a regra do sistema do Codex Desktop em ProgramData so e gravada como Administrador) e confere
+#     no fim se ela foi gravada com o endereco certo.
 # Todo o resto (Codex, Claude Desktop, Claude Code, OpenCode, ferramentas MCP, backup e -Uninstall) segue como no original.
 #Requires -Version 5.1
 [CmdletBinding()]
@@ -154,6 +156,9 @@ if ($Uninstall) {
     exit 0
 }
 
+$eAdmin = $false
+try { $eAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) } catch { }
+
 if ([string]::IsNullOrWhiteSpace($ApiKey)) {
     Write-Output ''
     Write-Output 'Instalador Lauren API'
@@ -213,6 +218,12 @@ if (-not $Sim) {
     Write-Output '  Alteracoes: arquivos de configuracao do Codex/Claude/OpenCode, ferramentas MCP em ~/.codex, variaveis de ambiente do usuario.'
     Write-Output '  Antes de alterar, guardo uma copia em ~/.gateway/backups. Para desfazer: rode de novo com -Uninstall.'
     Write-Output '  O Codex sera fechado durante a instalacao.'
+    if (-not $eAdmin -and $GlobalPolicy -eq '1') {
+        Write-Output ''
+        Write-Output '[AVISO] Voce NAO esta como Administrador. A regra do sistema do Codex Desktop (C:\ProgramData\OpenAI\Codex) pode nao ser gravada,'
+        Write-Output '        e o Codex Desktop pode nao usar a Lauren. Para instalar completo: tecle Ctrl+C, abra o PowerShell com botao direito'
+        Write-Output '        > "Executar como administrador" e rode o comando de novo.'
+    }
     [void](Read-Host 'Tecle Enter para instalar (ou Ctrl+C para cancelar)')
 }
 
@@ -706,6 +717,14 @@ if (($targetList -contains 'openclaw') -and $hasGpt -and $codexModel) {
 $manifest = @{ version = $Version; endpoint = $cleanEp; model = $codexModel; targets = $installed; files = $map } | ConvertTo-Json -Depth 20
 Write-Utf8 (Join-Path $backup 'manifest.json') $manifest
 Restrict-File (Join-Path $backup 'manifest.json')
+
+if ($GlobalPolicy -eq '1') {
+    $regraSis = Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'OpenAI\Codex\requirements.toml'
+    $regraOk = $false
+    try { $regraOk = (Test-Path -LiteralPath $regraSis) -and ((Get-Content -LiteralPath $regraSis -Raw -ErrorAction Stop) -like ('*' + $cleanEp + '*')) } catch { }
+    if ($regraOk) { Write-Output '[LOG] Regra do sistema do Codex Desktop: OK.' }
+    else { Write-Output '[AVISO] A regra do sistema do Codex Desktop NAO foi gravada com o endereco da Lauren. Rode de novo como Administrador (botao direito no PowerShell > Executar como administrador).' }
+}
 
 Broadcast-EnvironmentChange
 Write-Output '[LOG] Configuracao aplicada. Os caminhos e metodos internos nao sao exibidos.'
